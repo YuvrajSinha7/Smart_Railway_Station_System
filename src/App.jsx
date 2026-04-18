@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import PassengerDashboard from './pages/PassengerDashboard';
 const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
 import AlertBanner from './components/Feedback/AlertBanner';
+import SystemClock from './components/Feedback/SystemClock';
 import ChatbotWidget from './components/Chatbot/ChatbotWidget';
 import { Train, ShieldAlert } from 'lucide-react';
 import { useAppContext } from './store/AppContext';
@@ -37,6 +38,7 @@ function App() {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-safe"></span>
                 </span>
                 <span>Live System Active • {simulation.timeOfDay}</span>
+                <SystemClock />
               </div>
             </div>
           </div>

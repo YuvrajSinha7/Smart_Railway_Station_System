@@ -228,41 +228,44 @@ export function calculateBestRoutes(origin, destination, profile, zones, isEvacu
         totalTime += timeTaken;
       });
 
-      const comfortScore = Math.max(5, Math.min(98, 100 - (totalCost / 2)));
+      // Multi-factor Comfort Score: (100 is best)
+      // Factors: Density (40%), Wait Time (30%), Temperature (20%), Effort (10%)
+      const tempFactor = Math.max(0, (zone.temp - 24) * 2); // Penalty for heat > 24C
+      const waitFactor = zone.waitTime * 5; // Penalty for waiting
+      const comfortScore = Math.max(5, Math.min(98, 100 - (totalCost / 2) - tempFactor - waitFactor));
       
       return {
         path: pathData.nodes,
         totalCost,
         time: Math.round(totalTime),
         score: Math.round(comfortScore),
-        maxDensity: pathMaxDensity
+        maxDensity: pathMaxDensity,
+        temp: zone.temp,
+        waitTime: zone.waitTime
       };
     });
 
     // RANKING & CATEGORIZATION
-    recommendations.sort((a, b) => a.totalCost - b.totalCost);
+    recommendations.sort((a, b) => b.score - a.score); // Rank by Comfort Score (descending)
 
-    const sortedByTime = [...recommendations].sort((a, b) => a.time - b.time);
-    const sortedByEffort = [...recommendations].sort((a, b) => a.totalCost - b.totalCost);
-
-    const fastest = sortedByTime[0];
-    const lowestEffort = sortedByEffort[0];
+    const fastest = [...recommendations].sort((a, b) => a.time - b.time)[0];
+    const bestComfort = recommendations[0];
 
     const finalRoutes = [];
     
-    if (lowestEffort) {
+    if (bestComfort) {
       finalRoutes.push({
-        ...lowestEffort,
-        label: 'LOWEST EFFORT (Accessible)',
-        reason: `Optimized for ease of access ${lowestEffort.maxDensity > 70 ? '• Avoiding crowd bottlenecks' : ''}.`
+        ...bestComfort,
+        label: '🏆 MOST COMFORTABLE',
+        reason: `Best environment index (${bestComfort.score}/100) with optimized temperature and wait times.`
       });
     }
 
-    if (fastest && fastest.path.join(',') !== lowestEffort?.path.join(',')) {
+    if (fastest && fastest.path.join(',') !== bestComfort?.path.join(',')) {
       finalRoutes.push({
         ...fastest,
         label: 'FASTEST ROUTE',
-        reason: `Reduces total travel time by ${Math.round(lowestEffort.time - fastest.time)} mins.`
+        reason: `Reduces total travel time by ${Math.round(bestComfort.time - fastest.time)} mins, with slight trade-off in comfort.`
       });
     }
 
@@ -270,14 +273,12 @@ export function calculateBestRoutes(origin, destination, profile, zones, isEvacu
     if (fastest && fastest.maxDensity > 85) {
       finalRoutes.push({
         path: [origin, '...waiting...', destination],
-        score: 90,
+        score: Math.min(95, bestComfort.score + 10),
         time: Math.round(fastest.time + 5),
         label: 'STRATEGIC (Wait)',
-        reason: "Recommended wait mode: Current bottlenecks are predicted to clear in 2-5 mins."
+        reason: "Recommended wait mode: Environmental conditions are predicted to improve significantly in 3-5 mins."
       });
     }
-
-    return finalRoutes.slice(0, 3);
 
     return finalRoutes.slice(0, 3);
   } catch (error) {

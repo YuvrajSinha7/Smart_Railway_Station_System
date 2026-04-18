@@ -16,9 +16,9 @@ const INITIAL_ZONES = {
   'Platform 4': { id: 'Platform 4', density: 15, type: 'platform', trend: 0 },
   'Platform 5': { id: 'Platform 5', density: 10, type: 'platform', trend: 0 },
   'Platform 6': { id: 'Platform 6', density: 20, type: 'platform', trend: 0 },
-  'Platform 7': { id: 'Platform 7', density: 10, type: 'platform', trend: 0 },
-  'Station A': { id: 'Station A', density: 5, type: 'entry', trend: 0 },
-  'Station B': { id: 'Station B', density: 5, type: 'entry', trend: 0 },
+  'Platform 7': { id: 'Platform 7', density: 10, type: 'platform', trend: 0, temp: 24, waitTime: 2 },
+  'Station A': { id: 'Station A', density: 5, type: 'entry', trend: 0, temp: 24, waitTime: 1 },
+  'Station B': { id: 'Station B', density: 5, type: 'entry', trend: 0, temp: 24, waitTime: 1 },
 };
 
 const TIME_SLOTS = [
@@ -66,6 +66,10 @@ export default function useSimulationEngine() {
         // Calculate Trend for Predictive Engine
         newZones[key].trend = newDensity - oldDensity;
         newZones[key].density = newDensity;
+
+        // 6. Calculate Environment Factors for Comfort Index
+        newZones[key].temp = Math.round(24 + (newDensity / 10) + (Math.random() * 2)); // Temp increases with density
+        newZones[key].waitTime = Math.round((newDensity / 20) * 2); // Wait time scales with density
 
         // Generate alerts for dangerous crowding
         if (newDensity > 85 && newZones[key].type !== 'exit') {
