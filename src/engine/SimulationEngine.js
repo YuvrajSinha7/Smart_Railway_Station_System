@@ -17,8 +17,8 @@ const INITIAL_ZONES = {
   'Platform 5': { id: 'Platform 5', density: 10, type: 'platform', trend: 0 },
   'Platform 6': { id: 'Platform 6', density: 20, type: 'platform', trend: 0 },
   'Platform 7': { id: 'Platform 7', density: 10, type: 'platform', trend: 0, temp: 24, waitTime: 2 },
-  'Station A': { id: 'Station A', density: 5, type: 'entry', trend: 0, temp: 24, waitTime: 1 },
-  'Station B': { id: 'Station B', density: 5, type: 'entry', trend: 0, temp: 24, waitTime: 1 },
+  'Overbridge Hub A': { id: 'Overbridge Hub A', density: 5, type: 'entry', trend: 0, temp: 24, waitTime: 1 },
+  'Overbridge Hub B': { id: 'Overbridge Hub B', density: 5, type: 'entry', trend: 0, temp: 24, waitTime: 1 },
 };
 
 const TIME_SLOTS = [

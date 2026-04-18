@@ -193,10 +193,17 @@ export default function PassengerDashboard() {
                       
                       <div className="relative pl-4 border-l-1 border-gray-700/50 space-y-2 my-4">
                         {route.path.map((step, idx) => (
-                          <div key={idx} className="relative text-[13px] text-gray-300 flex items-center gap-2">
+                          <div key={idx} className="relative text-[13px] text-gray-300 flex flex-col items-start gap-1 pb-2">
                             <div className="absolute w-1.5 h-1.5 bg-gray-600 rounded-full -left-[17px] top-1.5 border border-surface"></div>
-                            {step}
-                            {step === '...waiting...' && <span className="text-[10px] bg-warning/10 text-warning px-1.5 rounded animate-bounce">Strategic Pause</span>}
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{step.name}</span>
+                              {idx === route.path.length - 1 && <span className="text-[10px] bg-primary/20 text-primary-light px-1.5 rounded">Destination</span>}
+                            </div>
+                            {step.via && (
+                              <span className="text-[10px] text-gray-400 flex items-center gap-1 font-mono italic">
+                                ↳ {step.via}
+                              </span>
+                            )}
                           </div>
                         ))}
                       </div>

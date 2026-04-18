@@ -75,27 +75,27 @@ export const STATION_GRAPH = {
     { to: 'Footbridge 2', stairs: true, distance: 4 }
   ],
   'Platform 4': [
-    { to: 'Station A', overbridge: true, stairs: false, distance: 2 },
+    { to: 'Overbridge Hub A', overbridge: true, stairs: false, distance: 2 },
     { to: 'Exit A', stairs: false, distance: 5 }
   ],
   'Platform 5': [
-    { to: 'Station B', overbridge: true, stairs: false, distance: 2 },
+    { to: 'Overbridge Hub B', overbridge: true, stairs: false, distance: 2 },
     { to: 'Exit B', stairs: false, distance: 5 }
   ],
   'Platform 6': [
-    { to: 'Station A', overbridge: true, stairs: false, distance: 3 },
+    { to: 'Overbridge Hub A', overbridge: true, stairs: false, distance: 3 },
     { to: 'Exit A', stairs: false, distance: 6 }
   ],
   'Platform 7': [
-    { to: 'Station B', overbridge: true, stairs: false, distance: 3 },
+    { to: 'Overbridge Hub B', overbridge: true, stairs: false, distance: 3 },
     { to: 'Exit B', stairs: false, distance: 6 }
   ],
-  'Station A': [
+  'Overbridge Hub A': [
     { to: 'Footbridge 1', overbridge: true, stairs: false, distance: 4 },
     { to: 'Platform 4', overbridge: true, stairs: false, distance: 2 },
     { to: 'Platform 6', overbridge: true, stairs: false, distance: 3 }
   ],
-  'Station B': [
+  'Overbridge Hub B': [
     { to: 'Footbridge 2', overbridge: true, stairs: false, distance: 4 },
     { to: 'Platform 5', overbridge: true, stairs: false, distance: 2 },
     { to: 'Platform 7', overbridge: true, stairs: false, distance: 3 }
@@ -167,12 +167,12 @@ export function calculateBestRoutes(origin, destination, profile, zones, isEvacu
     validateInputs(origin, destination, profile, zones);
 
     if (origin === destination) {
-      return [{ path: [origin], score: 100, time: 0, reason: "Currently at destination." }];
+      return [{ path: [{ name: origin }], score: 100, time: 0, reason: "Currently at destination." }];
     }
     
     if (isEvacuation) {
       return [{
-        path: [origin, 'Nearest Exit'],
+        path: [{ name: origin }, { name: 'Nearest Exit', via: 'Emergency Route' }],
         score: 100,
         time: 2,
         reason: "🚨 PROACTIVE REROUTING: Directed to nearest safe exit based on real-time flow analysis."
@@ -240,8 +240,19 @@ export function calculateBestRoutes(origin, destination, profile, zones, isEvacu
       const waitPenalty = pathWait * 2;
       const comfortScore = Math.max(5, Math.min(98, 100 - (totalCost / 2) - tempPenalty - waitPenalty));
       
+      const pathWithMetada = pathData.nodes.map((node, idx) => {
+        if (idx === 0) return { name: node };
+        const edge = pathData.edges[idx - 1];
+        let via = "";
+        if (edge.overbridge) via = "via Overbridge";
+        else if (edge.lift) via = "via Lift";
+        else if (edge.stairs) via = "via Stairs";
+        else via = "Walk";
+        return { name: node, via };
+      });
+
       return {
-        path: pathData.nodes,
+        path: pathWithMetada,
         totalCost,
         time: Math.round(totalTime),
         score: Math.round(comfortScore),
@@ -290,7 +301,7 @@ export function calculateBestRoutes(origin, destination, profile, zones, isEvacu
     // 4. Strategic Wait Logic (if severe congestion)
     if (fastest && fastest.maxDensity > 85) {
       finalRoutes.push({
-        path: [origin, '...waiting...', destination],
+        path: [{ name: origin }, { name: 'Waiting Area', via: 'Pause' }, { name: destination, via: 'Resume' }],
         score: Math.min(95, bestComfort.score + 10),
         time: Math.round(fastest.time + 5),
         label: '⏳ STRATEGIC (Wait)',
