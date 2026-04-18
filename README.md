@@ -2,6 +2,8 @@
 
 **A production-ready, AI-powered platform transforming Dhanbad Railway Station into an intelligent, adaptive environment.**
 
+### 🌐 [LIVE PREVIEW (AWS)](https://master.d1fup4qcfmexz1.amplifyapp.com)
+
 ---
 
 ## 🎯 Problem Statement
@@ -451,7 +453,10 @@ See [src/engine/TestSuite.js](src/engine/TestSuite.js) for details.
 | **Failure Handling** | ✅ Complete | Graceful fallbacks for all scenarios |
 | **Competitive Advantage** | ✅ Complete | Documented in detail |
 | **Demo Flow** | ✅ Complete | Step-by-step user journey |
-| **WOW Feature** | ✅ Complete | Emergency evacuation mode |
+| **WOW Feature**              | ✅ Complete | Emergency evacuation mode |
+| **Accessibility (A11y)**     | ✅ Complete | Full ARIA compliance for heatmaps |
+| **Security Hardening**       | ✅ Complete | Env variable protection (AWS) |
+| **Performance Opt**          | ✅ Complete | Lazy loading & Memoized analytics |
 
 ---
 
