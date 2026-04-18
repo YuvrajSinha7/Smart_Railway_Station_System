@@ -140,4 +140,6 @@ function DensityAnalytics() {
       </div>
     </div>
   );
+}
+
 export default React.memo(DensityAnalytics);
