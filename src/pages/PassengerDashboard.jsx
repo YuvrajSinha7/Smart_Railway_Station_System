@@ -143,56 +143,68 @@ export default function PassengerDashboard() {
             </div>
 
             {/* Dynamic Route Results */}
-            {routes.length > 0 && destination && (
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-300 px-1 flex justify-between">
-                  Suggested Optimization Paths
-                  <span className="text-[10px] font-normal text-gray-500 italic">Cost = α(Effort)+β(Time)+γ(Crowd)</span>
-                </h3>
-                {routes.map((route, i) => (
-                  <div key={i} className={`glass-panel p-4 rounded-xl border transition-all duration-300 ${i === 0 ? 'border-primary/50 shadow-[0_0_15px_rgba(59,130,246,0.1)]' : 'border-white/5 opacity-80 hover:opacity-100'}`}>
-                    <div className="flex justify-between items-start mb-2">
-                       <div>
-                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                           route.label?.includes('FASTEST') ? 'bg-info/20 text-info' : 
-                           route.label?.includes('EFFORT') ? 'bg-safe/20 text-safe' : 'bg-warning/20 text-warning'
-                         }`}>
-                           {route.label || `Alternative ${i+1}`}
-                         </span>
-                         <div className="mt-1 text-xs font-semibold text-white">~{route.time} mins travel time</div>
-                       </div>
-                       <div className="text-right">
-                          <div className="text-[10px] text-gray-400 mb-1">Comfort Index</div>
-                          <div className="flex items-center gap-2">
-                             <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden" role="progressbar" aria-valuenow={route.score} aria-valuemin="0" aria-valuemax="100">
-                                <div 
-                                  className={`h-full rounded-full ${route.score > 80 ? 'bg-safe' : route.score > 50 ? 'bg-warning' : 'bg-danger'}`}
-                                  style={{ width: `${route.score}%` }}
-                                ></div>
-                             </div>
-                             <span className="text-xs font-bold text-white">{route.score}</span>
-                          </div>
-                       </div>
-                    </div>
-                    
-                    <div className="relative pl-4 border-l-1 border-gray-700/50 space-y-2 my-3">
-                      {route.path.map((step, idx) => (
-                        <div key={idx} className="relative text-[13px] text-gray-300 flex items-center gap-2">
-                          <div className="absolute w-1.5 h-1.5 bg-gray-600 rounded-full -left-[17px] top-1.5 border border-surface"></div>
-                          {step}
-                          {step === '...waiting...' && <span className="text-[10px] bg-warning/10 text-warning px-1.5 rounded animate-bounce">Strategic Pause</span>}
-                          {simulation.zones[step]?.density > 75 && <span className="text-[9px] text-danger animate-pulse">⚡ Crowded</span>}
+            {destination && (
+              routes.length > 0 ? (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-gray-300 px-1 flex justify-between">
+                    Suggested Optimization Paths
+                    <span className="text-[10px] font-normal text-gray-500 italic">Cost = α(Effort)+β(Time)+γ(Crowd)</span>
+                  </h3>
+                  {routes.map((route, i) => (
+                    <div key={i} className={`glass-panel p-4 rounded-xl border transition-all duration-300 ${i === 0 ? 'border-primary/50 shadow-[0_0_15px_rgba(59,130,246,0.1)]' : 'border-white/5 opacity-80 hover:opacity-100'}`}>
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            route.label?.includes('FASTEST') ? 'bg-info/20 text-info' : 
+                            route.label?.includes('EFFORT') ? 'bg-safe/20 text-safe' : 'bg-warning/20 text-warning'
+                          }`}>
+                            {route.label || `Alternative ${i+1}`}
+                          </span>
+                          <div className="mt-1 text-xs font-semibold text-white">~{route.time} mins travel time</div>
                         </div>
-                      ))}
-                    </div>
+                        <div className="text-right">
+                            <div className="text-[10px] text-gray-400 mb-1">Comfort Index</div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden" role="progressbar" aria-valuenow={route.score} aria-valuemin="0" aria-valuemax="100">
+                                  <div 
+                                    className={`h-full rounded-full ${route.score > 80 ? 'bg-safe' : route.score > 50 ? 'bg-warning' : 'bg-danger'}`}
+                                    style={{ width: `${route.score}%` }}
+                                  ></div>
+                              </div>
+                              <span className="text-xs font-bold text-white">{route.score}</span>
+                            </div>
+                        </div>
+                      </div>
+                      
+                      <div className="relative pl-4 border-l-1 border-gray-700/50 space-y-2 my-3">
+                        {route.path.map((step, idx) => (
+                          <div key={idx} className="relative text-[13px] text-gray-300 flex items-center gap-2">
+                            <div className="absolute w-1.5 h-1.5 bg-gray-600 rounded-full -left-[17px] top-1.5 border border-surface"></div>
+                            {step}
+                            {step === '...waiting...' && <span className="text-[10px] bg-warning/10 text-warning px-1.5 rounded animate-bounce">Strategic Pause</span>}
+                            {simulation.zones[step]?.density > 75 && <span className="text-[9px] text-danger animate-pulse">⚡ Crowded</span>}
+                          </div>
+                        ))}
+                      </div>
 
-                    <div className="mt-3 text-[11px] leading-relaxed text-blue-300/90 bg-blue-500/5 p-2 rounded-lg border border-blue-500/10">
-                       <strong className="text-blue-400 text-[10px] uppercase tracking-wider block mb-0.5">Decision Rationale:</strong> 
-                       {route.reason}
+                      <div className="mt-3 text-[11px] leading-relaxed text-blue-300/90 bg-blue-500/5 p-2 rounded-lg border border-blue-500/10">
+                        <strong className="text-blue-400 text-[10px] uppercase tracking-wider block mb-0.5">Decision Rationale:</strong> 
+                        {route.reason}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="glass-panel p-6 rounded-xl border border-warning/30 bg-warning/5 text-center">
+                   <div className="text-warning mb-2 font-bold flex justify-center items-center gap-2">
+                      <ShieldAlert className="w-5 h-5"/> Route Unreachable
+                   </div>
+                   <p className="text-[11px] text-gray-400 italic">
+                      The AI Decision Engine cannot find a viable path to "{destination}" within safe constraints. 
+                      Try selecting an alternative platform.
+                   </p>
+                </div>
+              )
             )}
 
             {/* Best Time Predictor */}

@@ -8,7 +8,7 @@
  * - Performance validation
  */
 
-import { calculateBestRoutes, getBestTimePrediction, STATION_GRAPH } from './DecisionEngine';
+import { calculateBestRoutes, getBestTimePrediction, STATION_GRAPH } from './DecisionEngine.js';
 
 // ============================================================================
 // TEST SCENARIOS
@@ -379,3 +379,6 @@ export function runSystemHealthCheck() {
 
   return checks;
 }
+
+// Automatically run health check if executed directly
+runSystemHealthCheck();

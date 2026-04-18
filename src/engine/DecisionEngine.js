@@ -28,43 +28,84 @@ export const STATION_GRAPH = {
     { to: 'Hall A', stairs: false, distance: 3 }
   ],
   'Ticket Counter': [
+    { to: 'Main Entrance', stairs: false, distance: 2 },
     { to: 'Hall A', stairs: false, distance: 2 },
     { to: 'Footbridge 1', stairs: true, distance: 4 }
   ],
   'Hall A': [
+    { to: 'Main Entrance', stairs: false, distance: 3 },
+    { to: 'Ticket Counter', stairs: false, distance: 2 },
     { to: 'Platform 1', stairs: false, distance: 3 },
     { to: 'Footbridge 1', stairs: true, distance: 4 },
     { to: 'Footbridge 1', lift: true, stairs: false, distance: 2 },
     { to: 'Hall B', stairs: false, distance: 2 }
   ],
   'Hall B': [
+    { to: 'Hall A', stairs: false, distance: 2 },
     { to: 'Platform 1', stairs: false, distance: 4 },
     { to: 'Footbridge 2', stairs: true, distance: 4 },
     { to: 'Footbridge 2', lift: true, stairs: false, distance: 2 }
   ],
   'Footbridge 1': [
+    { to: 'Ticket Counter', stairs: true, distance: 4 },
+    { to: 'Hall A', stairs: true, distance: 4 },
     { to: 'Platform 2', stairs: true, distance: 3 },
     { to: 'Platform 3', stairs: true, distance: 5 },
     { to: 'Exit A', stairs: true, distance: 6 },
     { to: 'Station A', overbridge: true, stairs: false, distance: 4 }
   ],
   'Footbridge 2': [
+    { to: 'Hall B', stairs: true, distance: 4 },
     { to: 'Platform 2', stairs: true, distance: 3 },
     { to: 'Platform 3', stairs: true, distance: 4 },
     { to: 'Exit B', stairs: true, distance: 5 },
     { to: 'Station B', overbridge: true, stairs: false, distance: 4 }
   ],
-  'Platform 1': [{ to: 'Exit A', stairs: false, distance: 5 }],
-  'Platform 2': [{ to: 'Footbridge 1', stairs: true, distance: 3 }, { to: 'Footbridge 2', stairs: true, distance: 3 }],
-  'Platform 3': [{ to: 'Footbridge 1', stairs: true, distance: 5 }, { to: 'Footbridge 2', stairs: true, distance: 4 }],
-  'Platform 4': [{ to: 'Exit A', stairs: false, distance: 5 }],
-  'Platform 5': [{ to: 'Exit B', stairs: false, distance: 5 }],
-  'Platform 6': [{ to: 'Exit A', stairs: false, distance: 6 }],
-  'Platform 7': [{ to: 'Exit B', stairs: false, distance: 6 }],
-  'Station A': [{ to: 'Footbridge 1', overbridge: true, stairs: false, distance: 4 }],
-  'Station B': [{ to: 'Footbridge 2', overbridge: true, stairs: false, distance: 4 }],
-  'Exit A': [],
-  'Exit B': []
+  'Platform 1': [
+    { to: 'Hall A', stairs: false, distance: 3 },
+    { to: 'Hall B', stairs: false, distance: 4 },
+    { to: 'Exit A', stairs: false, distance: 5 }
+  ],
+  'Platform 2': [
+    { to: 'Footbridge 1', stairs: true, distance: 3 }, 
+    { to: 'Footbridge 2', stairs: true, distance: 3 }
+  ],
+  'Platform 3': [
+    { to: 'Footbridge 1', stairs: true, distance: 5 }, 
+    { to: 'Footbridge 2', stairs: true, distance: 4 }
+  ],
+  'Platform 4': [
+    { to: 'Station A', overbridge: true, stairs: false, distance: 2 },
+    { to: 'Exit A', stairs: false, distance: 5 }
+  ],
+  'Platform 5': [
+    { to: 'Station B', overbridge: true, stairs: false, distance: 2 },
+    { to: 'Exit B', stairs: false, distance: 5 }
+  ],
+  'Platform 6': [
+    { to: 'Station A', overbridge: true, stairs: false, distance: 3 },
+    { to: 'Exit A', stairs: false, distance: 6 }
+  ],
+  'Platform 7': [
+    { to: 'Station B', overbridge: true, stairs: false, distance: 3 },
+    { to: 'Exit B', stairs: false, distance: 6 }
+  ],
+  'Station A': [
+    { to: 'Footbridge 1', overbridge: true, stairs: false, distance: 4 },
+    { to: 'Platform 4', overbridge: true, stairs: false, distance: 2 },
+    { to: 'Platform 6', overbridge: true, stairs: false, distance: 3 }
+  ],
+  'Station B': [
+    { to: 'Footbridge 2', overbridge: true, stairs: false, distance: 4 },
+    { to: 'Platform 5', overbridge: true, stairs: false, distance: 2 },
+    { to: 'Platform 7', overbridge: true, stairs: false, distance: 3 }
+  ],
+  'Exit A': [
+    { to: 'Platform 1', stairs: false, distance: 5 }
+  ],
+  'Exit B': [
+    { to: 'Platform 5', stairs: false, distance: 5 }
+  ]
 };
 
 /**
@@ -140,14 +181,14 @@ export function calculateBestRoutes(origin, destination, profile, zones, isEvacu
 
     const { alpha, beta, gamma } = PROFILE_WEIGHTS[profile] || PROFILE_WEIGHTS['Normal'];
 
-    // Find all paths (limited depth for performance)
+    // Find all paths (increased depth for larger graph)
     const paths = [];
     function findPaths(current, currentPath, visited, edgesPath) {
       if (current === destination) {
         paths.push({ nodes: [...currentPath], edges: [...edgesPath] });
         return;
       }
-      if (currentPath.length > 5) return;
+      if (currentPath.length > 8) return;
       
       const edges = STATION_GRAPH[current] || [];
       for (let edge of edges) {
@@ -168,39 +209,25 @@ export function calculateBestRoutes(origin, destination, profile, zones, isEvacu
     const recommendations = paths.map(pathData => {
       let totalCost = 0;
       let totalTime = 0;
-      let physicalEffort = 0;
-      let crowdImpact = 0;
-      let maxDensity = 0;
-      let bottleneckAlert = false;
+      let pathMaxDensity = 0;
 
       pathData.edges.forEach(edge => {
         const zone = zones[edge.to] || { density: 0 };
-        // Use predictive density if available (density + trend)
         const currentDensity = zone.density || 0;
         const trend = zone.trend || 0;
         const predictedDensity = Math.min(100, Math.max(0, currentDensity + (trend * 2)));
         
-        maxDensity = Math.max(maxDensity, predictedDensity);
+        pathMaxDensity = Math.max(pathMaxDensity, predictedDensity);
         
         // --- COST COMPONENTS ---
-        // 1. Effort (α): Stairs penalty is heavy for high α profiles
-        const effort = edge.distance + (edge.stairs ? 20 : 0) + (edge.lift ? -5 : 0);
-        
-        // 2. Time (β): Base distance + crowd multiplier
+        const effort = edge.distance + (edge.stairs ? 15 : 0) + (edge.lift ? -5 : 0);
         const timeTaken = edge.distance * (1 + predictedDensity / 100);
-        
-        // 3. Crowding (γ): Cost units exponential with density
         const crowding = Math.pow(predictedDensity / 20, 1.5);
 
         totalCost += (alpha * effort) + (beta * timeTaken) + (gamma * crowding);
         totalTime += timeTaken;
-        physicalEffort += effort;
-        crowdImpact += crowding;
-
-        if (predictedDensity > 80) bottleneckAlert = true;
       });
 
-      // Comfort Score: Normalized inverse of cost (0-100)
       const comfortScore = Math.max(5, Math.min(98, 100 - (totalCost / 2)));
       
       return {
@@ -208,34 +235,30 @@ export function calculateBestRoutes(origin, destination, profile, zones, isEvacu
         totalCost,
         time: Math.round(totalTime),
         score: Math.round(comfortScore),
-        maxDensity,
-        bottleneckAlert,
-        type: 'balanced' // Placeholder for categorization
+        maxDensity: pathMaxDensity
       };
     });
 
     // RANKING & CATEGORIZATION
     recommendations.sort((a, b) => a.totalCost - b.totalCost);
 
-    // Identify [Fastest] and [Lowest Effort]
     const sortedByTime = [...recommendations].sort((a, b) => a.time - b.time);
     const sortedByEffort = [...recommendations].sort((a, b) => a.totalCost - b.totalCost);
 
     const fastest = sortedByTime[0];
     const lowestEffort = sortedByEffort[0];
 
-    // Build the finalized alternatives
     const finalRoutes = [];
     
     if (lowestEffort) {
       finalRoutes.push({
         ...lowestEffort,
         label: 'LOWEST EFFORT (Accessible)',
-        reason: `Optimized for ease of access ${maxDensity > 70 ? '• Avoiding crowd bottlenecks' : ''}.`
+        reason: `Optimized for ease of access ${lowestEffort.maxDensity > 70 ? '• Avoiding crowd bottlenecks' : ''}.`
       });
     }
 
-    if (fastest && fastest !== lowestEffort) {
+    if (fastest && fastest.path.join(',') !== lowestEffort?.path.join(',')) {
       finalRoutes.push({
         ...fastest,
         label: 'FASTEST ROUTE',
@@ -244,7 +267,7 @@ export function calculateBestRoutes(origin, destination, profile, zones, isEvacu
     }
 
     // STRATEGIC WAIT LOGIC
-    if (maxDensity > 85) {
+    if (fastest && fastest.maxDensity > 85) {
       finalRoutes.push({
         path: [origin, '...waiting...', destination],
         score: 90,
@@ -253,6 +276,8 @@ export function calculateBestRoutes(origin, destination, profile, zones, isEvacu
         reason: "Recommended wait mode: Current bottlenecks are predicted to clear in 2-5 mins."
       });
     }
+
+    return finalRoutes.slice(0, 3);
 
     return finalRoutes.slice(0, 3);
   } catch (error) {
