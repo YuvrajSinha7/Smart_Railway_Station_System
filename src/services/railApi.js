@@ -42,7 +42,7 @@ export const RailAPI = {
       try {
         const today = new Date();
         const yyyymmdd = today.toISOString().split('T')[0].replace(/-/g, '');
-        const url = `http://indianrailapi.com/api/v2/livetrainstatus/apikey/${apiKey}/trainnumber/${trainNo}/date/${yyyymmdd}/`;
+        const url = `https://indianrailapi.com/api/v2/livetrainstatus/apikey/${apiKey}/trainnumber/${trainNo}/date/${yyyymmdd}/`;
         
         const response = await fetch(url);
         const data = await response.json();

@@ -1,16 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Bot, AlertTriangle, Loader } from 'lucide-react';
 import { useAppContext } from '../../store/AppContext';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getStationAIResponse } from '../../engine/SimulationBrain';
-
-// Initialize Gemini using environment variables for security
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
 export default function ChatbotWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { type: 'bot', text: 'Hi! I am your Dhanbad Station AI Assistant powered by Gemini. How can I help you navigate the station today?' }
+    { type: 'bot', text: 'Hi! I am your Dhanbad Station AI Assistant. How can I help you navigate the station today?' }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -29,7 +25,7 @@ export default function ChatbotWidget() {
   }, [simulation.activeAlerts]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handleSend = async () => {
@@ -43,34 +39,21 @@ export default function ChatbotWidget() {
     setIsTyping(true);
 
     try {
+      // Small simulated delay for "AI thinking" feel
+      await new Promise(r => setTimeout(r, 600));
+
       if (simulation.isEvacuationMode) {
         setMessages(prev => [...prev, { type: 'bot', text: "🚨 EMERGENCY: Please drop your luggage and proceed to the nearest EXIT immediately. Ignore standard routing." }]);
         setIsTyping(false);
         return;
       }
 
-      // Gemini AI integration
-      if (import.meta.env.VITE_GEMINI_API_KEY) {
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-        // Provide context to the AI
-        const context = `You are a helpful assistant for Dhanbad Railway Station. Keep responses brief (1-2 sentences). 
-        Current station context: The user is in a simulation. 
-        Current active alerts: ${simulation.activeAlerts.join(', ') || 'None'}.
-        User input: ${userMsg}`;
-        
-        const result = await model.generateContent(context);
-        const responseText = result.response.text();
-        
-        setMessages(prev => [...prev, { type: 'bot', text: responseText }]);
-      } else {
-        // Fallback rule-based
-        setMessages(prev => [...prev, { type: 'bot', text: "Gemini API key is missing. However: Try asking about a platform or navigating to an exit." }]);
-      }
-    } catch (error) {
-      console.warn("Gemini API Unavailable - Falling back to Internal Smart Engine", error.message);
-      // SILENT FALLBACK: Use internal simulation-aware logic
+      // Use internal simulation-aware logic (Security: No API keys exposed)
       const fallbackResponse = getStationAIResponse(userMsg, simulation);
       setMessages(prev => [...prev, { type: 'bot', text: fallbackResponse }]);
+    } catch (error) {
+      console.warn("AI Engine Error:", error.message);
+      setMessages(prev => [...prev, { type: 'bot', text: "I'm having trouble processing that right now. Please check the live map for station status." }]);
     } finally {
       setIsTyping(false);
     }

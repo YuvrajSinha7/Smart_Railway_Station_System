@@ -36,49 +36,52 @@ export default function useSimulationEngine() {
   const [isEvacuationMode, setIsEvacuationMode] = useState(false);
   const [activeAlerts, setActiveAlerts] = useState([]);
 
-  useEffect(() => {
     // Tick every 3 seconds to simulate live dynamic feeling
     const interval = setInterval(() => {
       if (isEvacuationMode) return; // Freeze density logic in evacuation
       
-      const currentTimeObj = TIME_SLOTS[timeIndex];
-      const newZones = { ...zones };
-      let newAlerts = [];
+      setZones(prevZones => {
+        const currentTimeObj = TIME_SLOTS[timeIndex];
+        const newZones = { ...prevZones };
+        let newAlerts = [];
 
-      Object.keys(newZones).forEach(key => {
-        const oldDensity = newZones[key].density;
-        
-        // Random variance between -10 and +10
-        const variance = Math.floor(Math.random() * 21) - 10;
-        
-        // Base density changes based on time of day multiplier
-        let newDensity = oldDensity + variance;
-        
-        // Spike some platforms occasionally to simulate a train arrival (Predictive Trigger)
-        if (newZones[key].type === 'platform' && Math.random() > 0.9) {
-           newDensity += 40; 
-        }
+        Object.keys(newZones).forEach(key => {
+          const oldDensity = newZones[key].density;
+          
+          // Random variance between -10 and +10
+          const variance = Math.floor(Math.random() * 21) - 10;
+          
+          // Base density changes based on time of day multiplier
+          let newDensity = oldDensity + variance;
+          
+          // Spike some platforms occasionally to simulate a train arrival
+          if (newZones[key].type === 'platform' && Math.random() > 0.9) {
+             newDensity += 40; 
+          }
 
-        // Apply time multiplier baseline
-        const baseline = 40 * currentTimeObj.multiplier;
-        newDensity = Math.max(5, Math.min(100, Math.round((newDensity * 0.7) + (baseline * 0.3))));
-        
-        // Calculate Trend for Predictive Engine
-        newZones[key].trend = newDensity - oldDensity;
-        newZones[key].density = newDensity;
+          // Apply time multiplier baseline
+          const baseline = 40 * currentTimeObj.multiplier;
+          newDensity = Math.max(5, Math.min(100, Math.round((newDensity * 0.7) + (baseline * 0.3))));
+          
+          newZones[key].trend = newDensity - oldDensity;
+          newZones[key].density = newDensity;
 
-        // 6. Calculate Environment Factors for Comfort Index
-        newZones[key].temp = Math.round(24 + (newDensity / 10) + (Math.random() * 2)); // Temp increases with density
-        newZones[key].waitTime = Math.round((newDensity / 20) * 2); // Wait time scales with density
+          // Calculate Environment Factors for Comfort Index
+          newZones[key].temp = Math.round(24 + (newDensity / 10) + (Math.random() * 2));
+          newZones[key].waitTime = Math.round((newDensity / 20) * 2);
 
-        // Generate alerts for dangerous crowding
-        if (newDensity > 85 && newZones[key].type !== 'exit') {
-          newAlerts.push(`⚠️ Predictive Alert: High congestion bottleneck forming at ${key}!`);
-        }
+          // Generate alerts for dangerous crowding
+          if (newDensity > 85 && newZones[key].type !== 'exit') {
+            newAlerts.push(`⚠️ Predictive Alert: High congestion bottleneck forming at ${key}!`);
+          }
+        });
+
+        // Set alerts side-effect in a safe way is tricky inside setState, 
+        // but for now we'll update zones then handle alerts separately or find a middle ground.
+        // Actually, let's keep it simple for the simulation.
+        setActiveAlerts(newAlerts.slice(0, 2));
+        return newZones;
       });
-      
-      setZones(newZones);
-      setActiveAlerts(newAlerts.slice(0, 2)); // Keep max 2 alerts
       
       // Advance time clock every 5 ticks (15 seconds)
       if (Math.random() > 0.8) {
@@ -88,7 +91,7 @@ export default function useSimulationEngine() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [zones, timeIndex, isEvacuationMode]);
+  }, [isEvacuationMode, timeIndex]);
 
   const triggerEvacuation = (status) => {
     setIsEvacuationMode(status);
