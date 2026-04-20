@@ -35,7 +35,7 @@ export default function useSimulationEngine() {
   const [timeIndex, setTimeIndex] = useState(1); // Start at peak
   const [isEvacuationMode, setIsEvacuationMode] = useState(false);
   const [activeAlerts, setActiveAlerts] = useState([]);
-
+  useEffect(() => {
     // Tick every 3 seconds to simulate live dynamic feeling
     const interval = setInterval(() => {
       if (isEvacuationMode) return; // Freeze density logic in evacuation
@@ -78,7 +78,6 @@ export default function useSimulationEngine() {
 
         // Set alerts side-effect in a safe way is tricky inside setState, 
         // but for now we'll update zones then handle alerts separately or find a middle ground.
-        // Actually, let's keep it simple for the simulation.
         setActiveAlerts(newAlerts.slice(0, 2));
         return newZones;
       });
